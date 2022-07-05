@@ -1,0 +1,56 @@
+body,
+html {
+	padding: 0;
+	padding-inline: 1rem;
+	margin: 0;
+  background-color: coral;
+}
+* {
+	box-sizing: border-box;
+}
+.suggestions::after {
+	position: absolute;
+	content: "Suggestions :";
+	font-size: 1.3rem;
+	font-weight: 700;
+  top:-1.5em;
+}
+.suggestions {
+	background-color: aliceblue;
+	display: flex;
+  position: relative;
+	flex-direction: column;
+	border-radius: 0.4em;
+	gap: 0.2em;
+	max-height: 10em;
+  max-width:12em;
+  margin-top:2em;
+	padding-block: 0.1em;
+	box-shadow: 0.2em 0.1em 0.6em rgba(0, 0, 0, 0.598);
+}
+.suggestion-item {
+	padding: 0.2em;
+	list-style: none;
+	background-color: rgba(209, 209, 209, 0.485);
+}
+.suggestion-item:hover {
+	cursor: pointer;
+	background-color: aqua;
+}
+.Input {
+  width:100%;
+}
+@media screen and (min-width: 700px) {
+	body {
+		display: grid;
+		grid-template-columns: 75% auto;
+		gap: 2em;
+	}
+  center {
+    grid-column: 1/-1;
+  }
+  .suggestions{
+    margin-top: none;
+  }
+
+}
