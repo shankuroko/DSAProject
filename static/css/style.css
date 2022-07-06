@@ -37,20 +37,12 @@ html {
 	cursor: pointer;
 	background-color: aqua;
 }
-.Input {
+.inp {
   width:100%;
+	text-align: center;
+	border:0.1rem solid black;
+	margin-inline: auto;
 }
-@media screen and (min-width: 700px) {
-	body {
-		display: grid;
-		grid-template-columns: 75% auto;
-		gap: 2em;
-	}
-  center {
-    grid-column: 1/-1;
-  }
-  .suggestions{
-    margin-top: none;
-  }
-
+.inp  form{
+	text-align: center;
 }

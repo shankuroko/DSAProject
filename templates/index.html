@@ -5,16 +5,48 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Auto-Complete Document</title>
-  <link rel="stylesheet" href= "./static/css/style.css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+  <style> 
+  body,
+  html {
+    padding: 0;
+    padding-inline: 1rem;
+    margin: 0;
+    background-color: coral;
+  }
+  * {
+    box-sizing: border-box;
+  }
+  .inp {
+    width:70%;
+    text-align: center;
+    border:0.1rem solid black;
+    margin-inline: auto;
+    background-color: aliceblue;
+  }
+  .inp  form{
+    text-align: center;
+  }
+  .btn{
+    margin-inline:auto;
+  }
+  </style>
 </head>
 <body>
   <center><h1>Mark-Img To CSV</h1></center>
-  <form action="/upload"  id="form" method="post" enctype="multipart/form-data">
-    <input class="suggestions" type="file" name="file" id="file" />
-    <button type="submit">get Marks</button>
-  </form>
-  <div class="Input" id="disp"></div> 
+  
+	<div class="inp">
+		<h2>Upload a Sample</h2><br>
+    <form method="post" action="/getCSV" enctype="multipart/form-data">
+        <dl>
+            <p>
+                <input type="file" name="file" class="form-control" autocomplete="off" required>
+            </p>
+        </dl>
+        <p>
+            <input type="submit" value="Submit" class="btn" >
+        </p>
+    </form> 
   
 </body>
 <script src="./static/js/script.js"></script>

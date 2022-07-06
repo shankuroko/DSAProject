@@ -1,13 +1,17 @@
-from flask import Flask, render_template,request,jsonify
+from flask import Flask, render_template,request,url_for , redirect ,flash
 import pickle
 from werkzeug.utils import secure_filename
 import cv2
 from matplotlib.pyplot import imshow
 import numpy as np
+import csv
+import os
+
 def getImg(imgPath):
-  im=cv2.imread(imgPath,cv2.IMREAD_GRAYSCALE);
+  im=cv2.imread(imgPath,cv2.IMREAD_GRAYSCALE)
   reImg=cv2.resize(im,(600,800));# 600,800
   return reImg
+
 def getDigits(img):
   marklist={'A':[],'B':[]}
   partB = img[:,187:352] #140
@@ -30,10 +34,11 @@ def getDigits(img):
     startB+=incB
     startA+=incA
   return marklist
+
 def getFrontPage(img):
   orb=cv2.ORB_create(nfeatures=10000)
   kp1 , des1=orb.detectAndCompute(img,None)
-  img2=getImg('./drive/MyDrive/DSA_Lab/mask/mask.jpeg')
+  img2=getImg('./static/mask.jpeg')
   kp2 , des2=orb.detectAndCompute(img2,None)
   bf=cv2.BFMatcher()
   matches=bf.knnMatch(des2,des1,k=2)
@@ -53,22 +58,21 @@ def getFrontPage(img):
     out= cv2.warpPerspective(img,matrix,(600,800))
     return out
   return None
+
 def printDigits(marks):
   print("Part A:")
   for i in range(5):
-    cv2_imshow(marks['A'][i])
+    #cv2.imshow(marks['A'][i])
     print()
   print("Part B:")
   for j in range(5):
     print(str(6+j))
     for k in range(3):
-      cv2_imshow(marks["B"][j][k])
+      #cv2_imshow(marks["B"][j][k])
       print()
+
 def getMarksSection(img):
   return img[495:625,35:430]
-img=getImg('./drive/MyDrive/DSA_Lab/data/image-045.jpg')
-outRes=getFrontPage(img)
-finalRes=getMarksSection(outRes)
 
 def getIndividualDigits(marks):
   marksWithDigits={"A":[],"B":[]}
@@ -101,14 +105,14 @@ def getIndividualDigits(marks):
     if(len(part)>0):
       marksWithDigits["B"].append(part)
   return marksWithDigits
-marks=getDigits(finalRes)
-dMarks=getIndividualDigits(marks)
-loaded_model = pickle.load(open('./drive/MyDrive/DSA_Lab/KNN.sav', 'rb'))
-loaded_model = pickle.load(open('./drive/MyDrive/DSA_Lab/KNN.sav', 'rb'))
+
+loaded_model = pickle.load(open('./KNN.sav', 'rb'))
+
 def PredictDigit(img):
   yTest=cv2.resize(img,(28,28)).flatten()
   res=loaded_model.predict([yTest])
   return res[0]
+
 def toCSV(marks):
   mark=[]
   for i in marks["A"]:
@@ -137,24 +141,52 @@ def toCSV(marks):
           d=d+str(pred)
       mark.append(d)
   return mark
-data=toCSV(dMarks)
-import csv
-f = open('./drive/MyDrive/DSA_Lab/result.csv', 'w')
-writer = csv.writer(f)
-writer.writerow(data)
-f.close()
+
+def generateCSV(image):
+  img=getImg(image)
+  print(len(img))
+  outRes=getFrontPage(img)
+  finalRes=getMarksSection(outRes)
+  marks=getDigits(finalRes)
+  dMarks=getIndividualDigits(marks)
+  data=toCSV(dMarks)
+  f = open('./static/results/result.csv', 'w')
+  writer = csv.writer(f)
+  writer.writerow(data)
+  f.close()
 app= Flask(__name__)
+
+UPLOAD_FOLDER = 'static/uploads/'
+app.secret_key = "secret key"
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
+
+ALLOWED_EXTENSIONS = set(['png', 'jpg', 'jpeg', 'gif','jfif'])
+
+
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 @app.route("/")
 def index():
   return render_template("./index.html")
-@app.route('/upload', methods = ['GET', 'POST'])
+@app.route('/getCSV', methods = ['GET', 'POST'])
 def upload_file():
-  f = request.files['file']
-  
-  img=secure_filename(f.filename)
-  print(img)
-  return jsonify(render_template("./index.html",x="Hello"))
+  if 'file' not in request.files:
+    flash('No file part')
+    return redirect(request.url)
+  file = request.files['file']
+  if file.filename == '':
+      flash('No image selected for uploading')
+      return redirect(request.url)
+  if file and allowed_file(file.filename):
+      filename = secure_filename(file.filename)
+      file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+      print('upload_image filename: ' + filename)
+      flash('Image successfully uploaded and displayed below')
+      imagePath = './static/' + 'uploads/' + filename
+      generateCSV(imagePath)
+  return redirect(url_for('static', filename='results/result.csv'), code=301)
 
 if __name__=="__main__":
   app.run(debug=True)
